@@ -956,21 +956,28 @@ class DataHubQuery(object):
         data: List = self.request_graphql(query)["data"]["dataJob"]["runs"]["runs"]
         return data
 
-    def get_browse_list(self) -> Dict:
+    def get_browse_list(
+        self,
+        data_type: str = "DATA_FLOW",
+        path: list = None,
+        start: int = 0,
+        count: int = 10,
+    ) -> Dict:
         """
         nifi-browse
         :return:
         """
+        path = path or ["nifi", self.env.lower()]
         query: str = """
             {
               browse(input: {
-              type: DATA_FLOW,
+              type: %s,
               path: [
                 "%s",
                 "%s"
               ],
-              start: 0,
-              count: 10,
+              start: %s,
+              count: %s,
             }
               ) {
                 entities {
@@ -1554,8 +1561,11 @@ class DataHubQuery(object):
               __typename
             }
             """ % (
-            "nifi",
-            self.env.lower(),
+            data_type,
+            path[0],
+            path[1],
+            start,
+            count,
         )
         data: Dict = self.request_graphql(query)["data"]["browse"]
         return data
@@ -1601,8 +1611,3 @@ class DataHubQuery(object):
             "terms"
         ]
         return data
-
-
-if __name__ == "__main__":
-    data = DataHubQuery().get_root_glossary_terms()
-    print(data)

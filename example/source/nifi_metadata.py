@@ -5,8 +5,10 @@
     Changelog: all notable changes to this file will be documented
 """
 import time
+import uuid
+from typing import Dict, Callable, Iterable, List
 from datetime import datetime
-from typing import Iterable, List
+
 from datahub.metadata.schema_classes import (
     DataProcessInstancePropertiesClass,
     AuditStampClass,
@@ -14,11 +16,11 @@ from datahub.metadata.schema_classes import (
     DataProcessInstanceRunEventClass,
     DataProcessRunStatusClass,
     DataProcessInstanceRunResultClass,
+    DataJobInputOutputClass,
+    ChangeTypeClass,
 )
 from datahub.configuration import ConfigModel
 from datahub.emitter.mcp import MetadataChangeProposalWrapper
-from datahub.ingestion.api.common import WorkUnit, PipelineContext
-from datahub.metadata.schema_classes import DataJobInputOutputClass, ChangeTypeClass
 from datahub.emitter.mce_builder import (
     DEFAULT_ENV,
     make_data_job_urn_with_flow,
@@ -27,8 +29,7 @@ from datahub.emitter.mce_builder import (
     make_dataset_urn_with_platform_instance,
     make_user_urn,
 )
-from typing import Dict, Callable, Iterable
-import uuid
+from datahub.ingestion.api.common import WorkUnit, PipelineContext
 import datahub.ingestion.source.nifi as nifi
 from datahub.ingestion.api.workunit import MetadataWorkUnit
 from datahub.ingestion.source.nifi import (
@@ -78,7 +79,7 @@ class CustomNifiSource(NifiSource):
         self.config: CustomNifiConfig = CustomNifiConfig.parse_obj(
             {"flow_id": flow_id, "job_id": job_id, "env": env}
         )
-        ctx: PipelineContext = PipelineContext(run_id=f"datajob_lineage_test")
+        ctx: PipelineContext = PipelineContext(run_id=f"datajob_test")
         self.flow_id = self.config.flow_id
         self.platform = self.config.platform
         self.env = self.config.env
@@ -261,12 +262,3 @@ class CustomNifiSource(NifiSource):
             aspect=datajob_input_output,
         )
         return mcp
-
-
-if __name__ == "__main__":
-    from example.ingestion.emitter import DatahubSink
-
-    flow_id = "1c92020f-0180-1000-cb79-26e7eb563c40"
-    job_id = "f13b6633-19a9-33f4-269b-dcbbbd8d4828"
-    source = CustomNifiSource(flow_id=flow_id, job_id=job_id)
-    DatahubSink(source).post()

@@ -7,13 +7,12 @@
 
 import time
 from abc import ABC
-from typing import Optional, Iterable, List, Dict, Any, Type, Set, Union
+from typing import Iterable, Dict
+from example.config import datahub_server
 
-from datahub.configuration import ConfigModel
+from datahub.emitter.mcp import MetadataChangeProposalWrapper
 from datahub.emitter.mce_builder import (
-    DEFAULT_ENV,
     make_term_urn,
-    make_domain_urn,
     make_tag_urn,
     make_dataset_urn,
     make_data_platform_urn,
@@ -26,7 +25,6 @@ from datahub.ingestion.api.workunit import MetadataWorkUnit
 from datahub.metadata.com.linkedin.pegasus2avro.common import Status
 from datahub.metadata.com.linkedin.pegasus2avro.metadata.snapshot import DatasetSnapshot
 from datahub.metadata.com.linkedin.pegasus2avro.mxe import MetadataChangeEvent
-from datahub.emitter.mcp import MetadataChangeProposalWrapper
 from datahub.metadata.com.linkedin.pegasus2avro.dataset import (
     DatasetLineageType,
     FineGrainedLineage,
@@ -36,20 +34,12 @@ from datahub.metadata.com.linkedin.pegasus2avro.dataset import (
     UpstreamLineage,
 )
 from datahub.metadata.com.linkedin.pegasus2avro.schema import (
-    ArrayTypeClass,
-    BooleanTypeClass,
-    BytesTypeClass,
     DateTypeClass,
-    EnumTypeClass,
     MySqlDDL,
-    NullTypeClass,
-    NumberTypeClass,
-    RecordTypeClass,
     SchemaField,
     SchemaFieldDataType,
     SchemaMetadata,
     StringTypeClass,
-    TimeTypeClass,
 )
 from datahub.metadata.schema_classes import (
     GlobalTagsClass,
@@ -78,12 +68,12 @@ from datahub.metadata.schema_classes import (
     TestInfoClass,
     TestDefinitionClass,
     TestDefinitionTypeClass,
+    DatasetDeprecationClass,
 )
 from datahub.ingestion.graph.client import DataHubGraph, DatahubClientConfig
-from example.config import datahub_server
 
 
-class ETLSource(Source, ABC):
+class CustomEnrichSource(Source, ABC):
     def __init__(self):
         ctx: PipelineContext = PipelineContext(run_id=f"test")
         super().__init__(ctx)
@@ -103,7 +93,8 @@ class ETLSource(Source, ABC):
         :return:
         """
         for mcp in [
-            self.get_column_lineage_mcp()
+            self.get_dataset_deprecation_mcp()
+            # self.get_column_lineage_mcp()
             # self.get_test_result_mcp(),
             # self.get_profile_mcp(),
             # self.get_domain_mcp(),
@@ -382,6 +373,20 @@ class ETLSource(Source, ABC):
         )
         return mcp
 
+    def get_dataset_deprecation_mcp(self):
+        mcp = MetadataChangeProposalWrapper(
+            entityType="dataset",
+            changeType=ChangeTypeClass.UPSERT,
+            entityUrn=self.dataset_urn,
+            aspect=DatasetDeprecationClass(
+                deprecated=True,
+                note="note test",
+                actor=make_user_urn(username="datahub"),
+                decommissionTime=int(time.time()),
+            ),
+        )
+        return mcp
+
     def get_test_result_mcp(self):
         # todo 待完善
         mcp = MetadataChangeProposalWrapper(
@@ -406,9 +411,3 @@ class ETLSource(Source, ABC):
             ),
         )
         return mcp
-
-
-if __name__ == "__main__":
-    from example.ingestion.emitter import DatahubSink
-
-    DatahubSink(source=ETLSource()).post()

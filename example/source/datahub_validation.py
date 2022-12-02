@@ -10,6 +10,8 @@ import time
 from dataclasses import dataclass
 from datetime import timezone
 from typing import Any, Dict, List, Optional, Union
+from example.config import datahub_server
+
 from great_expectations.core.batch import Batch
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
@@ -37,7 +39,6 @@ from datahub.metadata.com.linkedin.pegasus2avro.assertion import (
 )
 from datahub.metadata.com.linkedin.pegasus2avro.common import DataPlatformInstance
 from datahub.metadata.com.linkedin.pegasus2avro.events.metadata import ChangeType
-from example.config import datahub_server
 
 logger = logging.getLogger(__name__)
 
