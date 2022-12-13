@@ -9,9 +9,10 @@ from example.ingestion.emitter import RestSink
 from example.source.enrich_metadata import CustomEnrichSource
 from example.source.nifi_metadata import CustomNifiSource
 from example.source.kafka_metadata import CustomKafkaSource
+from example.source.elastic_search_metadata import CustomElasticSearchSource
 
 
-class TestGraphApi(unittest.TestCase):
+class TestSource(unittest.TestCase):
     """
     """
 
@@ -19,6 +20,13 @@ class TestGraphApi(unittest.TestCase):
         pass
 
     # @unittest.skip("直接跳过测试")
+    def test_es_metadata(self):
+        source = CustomElasticSearchSource(
+            host="http://pet-kibana.dianchu.cc:9200"
+        )
+        RestSink(source).post()
+
+    @unittest.skip("直接跳过测试")
     def test_kafka_metadata(self):
         source = CustomKafkaSource(
             bootstrap="10.85.19.157:9092,10.85.19.158:9092,10.85.19.159:9092"

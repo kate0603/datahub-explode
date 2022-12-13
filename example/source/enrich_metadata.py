@@ -69,6 +69,7 @@ from datahub.metadata.schema_classes import (
     TestDefinitionClass,
     TestDefinitionTypeClass,
     DatasetDeprecationClass,
+    BrowsePathsClass,
 )
 from datahub.ingestion.graph.client import DataHubGraph, DatahubClientConfig
 
@@ -179,6 +180,18 @@ class CustomEnrichSource(Source, ABC):
         dataset_snapshot = DatasetSnapshot(
             urn=self.dataset_urn,
             aspects=[DatasetPropertiesClass(customProperties=properties, name=name)],
+        )
+        mce = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
+        return mce
+
+    def get_brows_path_mce(self):
+        """
+        :return:
+        """
+        brows_path: list = ["/prod/dwd"]
+
+        dataset_snapshot = DatasetSnapshot(
+            urn=self.dataset_urn, aspects=[BrowsePathsClass(paths=brows_path)],
         )
         mce = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
         return mce
