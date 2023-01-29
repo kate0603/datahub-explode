@@ -70,6 +70,9 @@ from datahub.metadata.schema_classes import (
     TestDefinitionTypeClass,
     DatasetDeprecationClass,
     BrowsePathsClass,
+    QuantileClass,
+    ValueFrequencyClass,
+    HistogramClass,
 )
 from datahub.ingestion.graph.client import DataHubGraph, DatahubClientConfig
 
@@ -94,10 +97,10 @@ class CustomEnrichSource(Source, ABC):
         :return:
         """
         for mcp in [
-            self.get_dataset_deprecation_mcp()
+            # self.get_dataset_deprecation_mcp()
             # self.get_column_lineage_mcp()
             # self.get_test_result_mcp(),
-            # self.get_profile_mcp(),
+            self.get_profile_mcp(),
             # self.get_domain_mcp(),
             # self.get_queries_mcp(),
         ]:
@@ -380,7 +383,24 @@ class CustomEnrichSource(Source, ABC):
                 rowCount=102,
                 columnCount=2,
                 fieldProfiles=[
-                    DatasetFieldProfileClass("account_id", max="100", min="1")
+                    DatasetFieldProfileClass(
+                        fieldPath="account_id",
+                        max="10",
+                        min="1",
+                        mean="50",
+                        median="49",
+                        stdev="2.3",
+                        uniqueCount=5,
+                        uniqueProportion=5.1,
+                        nullCount=8,
+                        nullProportion=8.1,
+                        quantiles=[QuantileClass(quantile="2", value="2")],
+                        distinctValueFrequencies=[
+                            ValueFrequencyClass(value="a", frequency=3)
+                        ],
+                        histogram=HistogramClass(boundaries=["a", "b"], heights=[1, 2]),
+                        sampleValues=["a"],
+                    )
                 ],
             ),
         )

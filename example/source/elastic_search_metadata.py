@@ -159,13 +159,10 @@ class CustomElasticSearchSource(ElasticsearchSource):
         # 新建kibana索引模式
         for index in new_index:
             self.create_index_pattern(index_pattern=index.replace(f"-{self.dt}", ""))
-        return
         # mcp
         for index in new_index:
             self.report.report_index_scanned(index)
             if self.source_config.index_pattern.allowed(index):
-                print("=22===", index)
-                # index = index.replace(f"-{self.dt}", "")
                 for mcp in self._extract_mcps(index, is_index=True):
                     wu = MetadataWorkUnit(id=f"index-{index}", mcp=mcp)
                     self.report.report_workunit(wu)

@@ -5,6 +5,8 @@
     Changelog: all notable changes to this file will be documented
 """
 import unittest
+import json
+from requests import request
 
 
 class TestEs(unittest.TestCase):
@@ -15,10 +17,27 @@ class TestEs(unittest.TestCase):
         pass
 
     @unittest.skip("直接跳过测试")
-    def test_kibana_api(self):
-        import json
-        from requests import request
+    def test_kibana_list(self):
+        base_url = "http://192.168.5.38:45603"
+        url: str = f"{base_url}/api/saved_objects/_find"
 
+        headers: dict = {
+            "Content-Type": "application/json",
+            "kbn-xsrf": "True",
+        }
+        params = {
+            "type": "index-pattern",
+            "page": 1,
+            "per_page": 1,
+        }
+        index_pattern_response = request(
+            headers=headers, url=url, method="get", params=params
+        )
+        index_pattern_json = index_pattern_response.json()
+        print(index_pattern_json)
+
+    @unittest.skip("直接跳过测试")
+    def test_kibana_create(self):
         index_pattern: str = "myth"
         base_url = "http://192.168.5.38:45603"
         url: str = f"{base_url}/api/saved_objects/index-pattern/{index_pattern}?overwrite=false"
@@ -39,7 +58,7 @@ class TestEs(unittest.TestCase):
             headers=headers, url=url, method="post", data=json.dumps(data)
         )
         index_pattern_json = index_pattern_response.json()
-        if index_pattern_json['statusCode'] == 409:
+        if index_pattern_json["statusCode"] == 409:
             msg = f"{index_pattern_json['error']},{index_pattern_json['message']}"
         print(index_pattern_json)
 

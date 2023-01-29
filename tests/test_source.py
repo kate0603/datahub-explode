@@ -19,7 +19,7 @@ class TestSource(unittest.TestCase):
     def setUp(self) -> None:
         pass
 
-    # @unittest.skip("直接跳过测试")
+    @unittest.skip("直接跳过测试")
     def test_es_metadata(self):
         source = CustomElasticSearchSource(
             host="http://pet-kibana.dianchu.cc:9200"
@@ -44,6 +44,18 @@ class TestSource(unittest.TestCase):
         job_id = "f13b6633-19a9-33f4-269b-dcbbbd8d4828"
         source = CustomNifiSource(flow_id=flow_id, job_id=job_id)
         RestSink(source).post()
+
+    # @unittest.skip("直接跳过测试")
+    def test_custom_dataset_profie_source(self):
+        from example.source.custom_dataset_profie_source import CustomProfileSource
+        source = CustomProfileSource(
+            table=f"dc.dwd_active",
+            rows=20,
+            column_count=8,
+            column_info={"data_size": {"max": "10"}},
+            platform="dwd",
+        )
+        RestSink(source=source).post()
 
 
 if __name__ == "__main__":
