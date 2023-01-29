@@ -45,9 +45,9 @@ class TestSource(unittest.TestCase):
         source = CustomNifiSource(flow_id=flow_id, job_id=job_id)
         RestSink(source).post()
 
-    # @unittest.skip("直接跳过测试")
-    def test_custom_dataset_profie_source(self):
-        from example.source.custom_dataset_profie_source import CustomProfileSource
+    @unittest.skip("直接跳过测试")
+    def test_custom_dataset_profile_source(self):
+        from example.source.custom_dataset_profile_source import CustomProfileSource
         source = CustomProfileSource(
             table=f"dc.dwd_active",
             rows=20,
