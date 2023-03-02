@@ -12,4 +12,5 @@
 * [【datahub】实践篇-ElasticSearch](https://mansui.yuque.com/gdhg3r/copv4n/vxbn28k7hd9gvvd1)
 * [【datahub】实践篇-ElasticSearch](https://mansui.yuque.com/gdhg3r/copv4n/vxbn28k7hd9gvvd1)
 * [【datahub】实践篇-ElasticSearch](https://mansui.yuque.com/gdhg3r/copv4n/vxbn28k7hd9gvvd1)
+* [【datahub】实践篇-CSVEnricher](https://mansui.yuque.com/gdhg3r/copv4n/gige3qhi0fwklhq1)
 * [【datahub】集成-GreatExpectations](https://mansui.yuque.com/gdhg3r/copv4n/sxehtp00c3zrphnh)

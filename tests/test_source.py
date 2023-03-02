@@ -10,6 +10,7 @@ from example.source.enrich_metadata import CustomEnrichSource
 from example.source.nifi_metadata import CustomNifiSource
 from example.source.kafka_metadata import CustomKafkaSource
 from example.source.elastic_search_metadata import CustomElasticSearchSource
+from example.source.csv_enricher_metadata import CustomCSVEnricherSource
 
 
 class TestSource(unittest.TestCase):
@@ -18,6 +19,12 @@ class TestSource(unittest.TestCase):
 
     def setUp(self) -> None:
         pass
+
+    # @unittest.skip("直接跳过测试")
+    def test_csv_enricher_metadata(self):
+        source = CustomCSVEnricherSource()
+        RestSink(source).post()
+
 
     @unittest.skip("直接跳过测试")
     def test_es_metadata(self):

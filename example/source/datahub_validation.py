@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Created by w at 2022/4/6.
-    Description:
+    Description:自定义 emitter
     Changelog: all notable changes to this file will be documented
 """
 import json
