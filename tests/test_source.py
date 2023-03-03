@@ -11,6 +11,7 @@ from example.source.nifi_metadata import CustomNifiSource
 from example.source.kafka_metadata import CustomKafkaSource
 from example.source.elastic_search_metadata import CustomElasticSearchSource
 from example.source.csv_enricher_metadata import CustomCSVEnricherSource
+from example.source.superset_metadata import CustomSupersetSource
 
 
 class TestSource(unittest.TestCase):
@@ -20,17 +21,19 @@ class TestSource(unittest.TestCase):
     def setUp(self) -> None:
         pass
 
-    # @unittest.skip("直接跳过测试")
+    @unittest.skip("直接跳过测试")
+    def test_superset_metadata(self):
+        source = CustomSupersetSource()
+        RestSink(source).post()
+
+    @unittest.skip("直接跳过测试")
     def test_csv_enricher_metadata(self):
         source = CustomCSVEnricherSource()
         RestSink(source).post()
 
-
     @unittest.skip("直接跳过测试")
     def test_es_metadata(self):
-        source = CustomElasticSearchSource(
-            host="http://pet-kibana.dianchu.cc:9200"
-        )
+        source = CustomElasticSearchSource(host="http://pet-kibana.dianchu.cc:9200")
         RestSink(source).post()
 
     @unittest.skip("直接跳过测试")
@@ -55,6 +58,7 @@ class TestSource(unittest.TestCase):
     @unittest.skip("直接跳过测试")
     def test_custom_dataset_profile_source(self):
         from example.source.custom_dataset_profile_source import CustomProfileSource
+
         source = CustomProfileSource(
             table=f"dc.dwd_active",
             rows=20,
