@@ -33,14 +33,16 @@ class TestSource(unittest.TestCase):
 
     @unittest.skip("直接跳过测试")
     def test_es_metadata(self):
-        source = CustomElasticSearchSource(host="http://pet-kibana.dianchu.cc:9200")
+        from example.config import kibana_host
+
+        source = CustomElasticSearchSource(host=kibana_host)
         RestSink(source).post()
 
     @unittest.skip("直接跳过测试")
     def test_kafka_metadata(self):
-        source = CustomKafkaSource(
-            bootstrap="10.85.19.157:9092,10.85.19.158:9092,10.85.19.159:9092"
-        )
+        from example.config import kafka_bootstrap
+
+        source = CustomKafkaSource(bootstrap=kafka_bootstrap)
         # source.get_topic_list_exist()
         RestSink(source).post()
 

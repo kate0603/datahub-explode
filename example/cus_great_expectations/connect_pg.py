@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    Created by wq at 2023/3/1.
-    Copyright (c) 2013-present, Xiamen Dianchu Technology Co.,Ltd.
+    Created by w at 2023/3/1.
     Description:
     Changelog: all notable changes to this file will be documented
 """

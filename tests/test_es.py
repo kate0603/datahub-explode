@@ -7,6 +7,7 @@
 import unittest
 import json
 from requests import request
+from example.config import uat_kibana_host
 
 
 class TestEs(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestEs(unittest.TestCase):
 
     @unittest.skip("直接跳过测试")
     def test_kibana_list(self):
-        base_url = "http://192.168.5.38:45603"
+        base_url = uat_kibana_host
         url: str = f"{base_url}/api/saved_objects/_find"
 
         headers: dict = {
@@ -39,7 +40,7 @@ class TestEs(unittest.TestCase):
     @unittest.skip("直接跳过测试")
     def test_kibana_create(self):
         index_pattern: str = "myth"
-        base_url = "http://192.168.5.38:45603"
+        base_url = uat_kibana_host
         url: str = f"{base_url}/api/saved_objects/index-pattern/{index_pattern}?overwrite=false"
 
         headers: dict = {
@@ -66,7 +67,7 @@ class TestEs(unittest.TestCase):
     def test_kibana(self):
         from kibana_api import Kibana
 
-        client = Kibana(base_url="http://192.168.5.38:45603/")
+        client = Kibana(base_url=uat_kibana_host)
         objects_response = client.object().all(type="index-pattern")  # Type in specific
         objects_json = objects_response.json()
         print(objects_json)
@@ -84,8 +85,9 @@ class TestEs(unittest.TestCase):
     @unittest.skip("直接跳过测试")
     def test_es(self):
         from elasticsearch import Elasticsearch
+        from example.config import kibana_host
 
-        client = Elasticsearch(hosts="http://pet-kibana.dianchu.cc:9200")
+        client = Elasticsearch(hosts=kibana_host)
         index = "myth_sched_log_tag-2022.12.06-reindex"
         # client.indices.create(index=index)
         # data = client.indices.get(index=index)

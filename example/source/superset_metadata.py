@@ -18,6 +18,7 @@ from datahub.ingestion.source.superset import (
     AuditStamp,
     dp,
 )
+from example.config import superset_url
 
 
 class CustomSupersetSource(SupersetSource):
@@ -25,7 +26,7 @@ class CustomSupersetSource(SupersetSource):
         ctx: PipelineContext = PipelineContext(run_id=f"test")
         config: SupersetConfig = SupersetConfig.parse_obj(
             {
-                "connect_uri": "http://192.168.5.117:8666/",
+                "connect_uri": superset_url,
                 "username": "admin",
                 "password": "bigdata",
                 "provider": "db",

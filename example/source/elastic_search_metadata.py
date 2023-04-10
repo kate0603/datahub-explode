@@ -39,6 +39,7 @@ from datahub.ingestion.source.elastic_search import (
     ElasticsearchSourceConfig,
     ElasticToSchemaFieldConverter,
 )
+from example.config import uat_kibana_host
 
 
 class CustomElasticSearchSource(ElasticsearchSource):
@@ -96,7 +97,7 @@ class CustomElasticSearchSource(ElasticsearchSource):
         super(CustomElasticSearchSource, self).__init__(config, ctx)
 
     def create_index_pattern(self, index_pattern: str) -> None:
-        base_url = "http://192.168.5.38:45603"
+        base_url = uat_kibana_host
         url: str = f"{base_url}/api/saved_objects/index-pattern/{index_pattern}?overwrite=false"
 
         headers: dict = {
