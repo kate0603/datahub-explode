@@ -45,6 +45,7 @@ class RestSink(object):
             else:
                 print(wu.metadata.__class__)
                 print(wu.metadata)
+        emitter.close()
 
 
 class KafkaSink(object):
@@ -87,3 +88,5 @@ class KafkaSink(object):
 
         emitter.emit(item=mce, callback=callback)
         emitter.flush()
+
+        emitter.close()
