@@ -5,7 +5,7 @@
     Changelog: all notable changes to this file will be documented
 """
 import unittest
-from example.graphsql_api.query import DataHubQuery
+from example.api.graphsql_api import DataHubQuery
 
 
 class TestGraphApi(unittest.TestCase):

@@ -5,7 +5,7 @@
     Changelog: all notable changes to this file will be documented
 """
 import unittest
-from example.ingestion.datahub_manage import DatahubManage
+from example.api.datahub_manage import DatahubManage
 
 
 class TestDatahubManage(unittest.TestCase):

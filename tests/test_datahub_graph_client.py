@@ -5,7 +5,7 @@
     Changelog: all notable changes to this file will be documented
 """
 import unittest
-from example.ingestion.datahub_graph_client import DatahubGraphClient
+from example.api.datahub_graph_client import DatahubGraphClient
 
 
 class TestDatahubGraphClient(unittest.TestCase):

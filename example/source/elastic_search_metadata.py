@@ -9,7 +9,7 @@ from hashlib import md5
 from requests import request
 from datetime import date
 from typing import Any, Dict, Iterable, List, Optional
-from example.graphsql_api.query import DataHubQuery
+from example.api.graphsql_api import DataHubQuery
 
 from datahub.configuration.common import AllowDenyPattern
 from datahub.emitter.mce_builder import (

@@ -310,7 +310,7 @@ class CustomEnrichSource(Source, ABC):
         :return:
         """
         # 需找到name对应的urn，在能关联到glossaryTerms registry
-        from example.graphsql_api.query import DataHubQuery
+        from example.api.graphsql_api import DataHubQuery
 
         terms_config: list = DataHubQuery().get_root_glossary_terms()
         mapping_terms: dict = {i["properties"]["name"]: i["name"] for i in terms_config}
