@@ -13,3 +13,5 @@
 * [【datahub】实践篇-CSVEnricher](https://mansui.yuque.com/g/gdhg3r/copv4n/gige3qhi0fwklhq1/collaborator/join?token=UHk1GPIqMramOSNJ# 《【datahub】实践篇-CSVEnricher》)
 * [【datahub】实践篇-Superset](https://mansui.yuque.com/g/gdhg3r/copv4n/epviatxqg82hbvq9/collaborator/join?token=CzK6X2R7caTrGDrP# 《【datahub】实践篇-Superset》)
 * [【datahub】集成-GreatExpectations](https://mansui.yuque.com/g/gdhg3r/copv4n/sxehtp00c3zrphnh/collaborator/join?token=okZ4oiPrOIYMNo42# 《【datahub】集成-GreatExpectations》)
+* [【datahub】实践篇-API_AND_SDK](https://mansui.yuque.com/g/gdhg3r/copv4n/xh1r6rck3ee22rcq/collaborator/join?token=EkuGZV93fzp0TSOD# 《【datahub】实践篇-API_AND_SDK》)
+* [【datahub】实践篇-Action](https://mansui.yuque.com/g/gdhg3r/copv4n/zgvt4xrv0ihwywgb/collaborator/join?token=1fPMMN45zHwOpBni# 《【datahub】实践篇-Action》)
