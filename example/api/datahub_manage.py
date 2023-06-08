@@ -6,27 +6,33 @@
 """
 import json
 import requests
+from example.config import datahub_server
+from datahub.emitter.mce_builder import dataset_key_to_urn
+from datahub.metadata.schema_classes import DatasetKeyClass
 
 
 class DatahubManage(object):
     """
     """
-    @classmethod
-    def delete_dataset(cls):
-        config: dict = {"server": "http://127.0.0.1", "token": ""}
-        token = config.get("token")
-        server = config.get("server")
-        urn = f"urn:li:dataset:(urn:li:dataPlatform:dwd,dc.dwd_chat,PROD)"
-        url = f"{server}:9002/openapi/entities/v1/?urns={urn}&soft=false"
-        token = f"Bearer {token}"
 
-        headers = {
+    def __init__(self):
+        token: str = datahub_server.get("token")
+        self.server: str = datahub_server.get("openapi")
+        self.env: str = "PROD"
+        token = f"Bearer {token}"
+        self.headers: dict = {
             "accept": "application/json",
             "Content-Type": "application/json",
             "Authorization": token,
         }
 
-        response = requests.delete(url, headers=headers)
+    def delete_dataset(self, platform: str, name: str):
+        urn: str = dataset_key_to_urn(
+            key=DatasetKeyClass(platform=platform, name=name, origin=self.env)
+        )
+        url = f"{self.server}/entities/v1/?urns={urn}&soft=false"
+
+        response = requests.delete(url, headers=self.headers)
         # 检查响应代码，如果成功则输出 URN 已被删除
         if response.status_code == 200:
             res = response.json()

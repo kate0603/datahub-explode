@@ -17,7 +17,7 @@ class TestDatahubManage(unittest.TestCase):
 
     @unittest.skip("直接跳过测试")
     def test_delete_dataset(self):
-        DatahubManage.delete_dataset()
+        DatahubManage().delete_dataset(platform="dwd", name="dc.dwd_reg")
 
 
 if __name__ == "__main__":
