@@ -57,7 +57,7 @@
         # elasticsearch==7.13，8.0以上不兼容
         from elasticsearch import Elasticsearch
         client = Elasticsearch(
-            hosts="http://pet-kibana.dianchu.cc:9200"
+            hosts="http://pet-kibana:9200"
         )
         # 索引
         # index_list = client.indices.get_alias()
