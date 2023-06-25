@@ -67,6 +67,7 @@ from datahub.metadata.schema_classes import (
     DateTypeClass,
     StringTypeClass,
     BooleanTypeClass,
+    DataProductPropertiesClass,
 )
 import logging
 
@@ -85,6 +86,235 @@ class DatahubSdk(object):
         self.graph = DataHubGraph(
             DatahubClientConfig(server=config["gms_server"], token=config["token"])
         )
+
+    def make_data_product_urn(self, urn: str) -> str:
+        # todo 等待sdk更新
+        if urn.startswith("urn:li:dataProduct:"):
+            return urn
+        return f"urn:li:dataProduct:{urn}"
+
+    def list_query(
+        self, platform: str, name: str, start: int = 0, count: int = 1000
+    ) -> Dict:
+        """
+        query
+        :param platform:
+        :param name:
+        :return:
+        """
+        from datahub.metadata.schema_classes import QuerySourceClass
+
+        urn = make_dataset_urn(platform=platform, name=name, env=self.env)
+
+        query: str = f"""
+        query listQueries {{  
+            listQueries(
+                input: {{
+                    start: {start},
+                    count: {count}
+                    source:  {QuerySourceClass.MANUAL}
+                    datasetUrn: "{urn}"
+                }}
+            )
+            {{
+                start
+                count
+                total
+                queries {{
+                    urn
+                    type
+                    properties {{
+                        name
+                        description
+                        statement {{
+                            value
+                            language
+                        }}
+                    }}
+                    subjects {{
+                        dataset {{
+                            urn
+                        }}
+                    }}
+                }}
+            }}
+        }}
+        """
+
+        result = self.graph.execute_graphql(query=query)
+        return result
+
+    def create_query(self, platform: str, name: str, query_info: Dict) -> None:
+        """
+        创建 query
+        :param platform:
+        :param name:
+        :return:
+        """
+        from datahub.metadata.schema_classes import QueryLanguageClass
+
+        urn = make_dataset_urn(platform=platform, name=name, env=self.env)
+
+        query: str = f"""
+        mutation createQuery {{  
+            createQuery(
+                input: {{
+                    properties: {{ 
+                        name: "{query_info.get('name')}", 
+                        description: "{query_info.get('description', '')}",
+                        statement: {{ 
+                            value: "{query_info.get('sql')}",  
+                            language: {QueryLanguageClass.SQL}
+                        }}
+                    }}
+                    subjects: [ {{ datasetUrn: "{urn}"}}]
+                }}
+            )
+            {{
+                urn
+            }}
+        }}
+        """
+
+        result = self.graph.execute_graphql(query=query)
+        print(result)
+
+    def delete_query(self, query_id: str) -> None:
+        """
+        删除 query
+        :param query_id:
+        :return:
+        """
+        urn = f"""urn:li:query:{query_id}"""
+
+        query: str = f"""
+        mutation deleteQuery {{
+            deleteQuery(urn: "{urn}")
+        }}
+        """
+        result = self.graph.execute_graphql(query=query)
+        print(result)
+
+    def batch_set_data_product(
+        self, dataset_list: List[Dict], name: str = "true"
+    ) -> Dict:
+        """
+        批量增加deprecation
+        :param dataset_list:
+        :param name:
+        :return:
+        """
+        resource_urn: List = [
+            f""" "{make_dataset_urn(platform=i['platform'], name=i['name'])}" """
+            for i in dataset_list
+        ]
+
+        query: str = f"""
+        mutation batchSetDataProduct {{
+            batchSetDataProduct(
+              input: {{
+                dataProductUrn: "{self.make_data_product_urn(urn=name)}",
+                resourceUrns: [{','.join(resource_urn)}]
+              }}
+            )
+        }}
+        """
+        result = self.graph.execute_graphql(query=query)
+        return result
+
+    def create_data_product(
+        self, name: str = None, desc: str = "", domain_name: str = ""
+    ) -> None:
+        """
+        创建data product
+        :param name:
+        :param desc:
+        :param domain_name:
+        :return:
+        """
+        urn = self.make_data_product_urn(urn=name)
+        properties_aspect = DataProductPropertiesClass(name=name, description=desc)
+
+        event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
+            entityType="dataProduct",
+            changeType=ChangeTypeClass.UPSERT,
+            entityUrn=urn,
+            aspect=properties_aspect,
+        )
+
+        self.emitter.emit(event)
+        log.info(f"Created data product {urn}")
+
+        query: str = f"""
+        mutation setDomain {{
+            setDomain(domainUrn: "{make_domain_urn(domain=domain_name)}", entityUrn: "{urn}")
+        }}
+        """
+        result = self.graph.execute_graphql(query=query)
+        print(result)
+
+    def list_domain(self, start: int = 0, count: int = 1000) -> Dict:
+        """
+        list domain
+        :param start:
+        :param count:
+        :return:
+        """
+
+        query: str = f"""
+        query listDomains {{
+            listDomains(input: {{start: {start}, count: {count} }}) {{
+                count
+                start
+                total
+                domains {{
+                  ...childDomain
+                }}
+              }}
+            }}
+
+            fragment childDomain on Domain {{
+                urn
+                properties {{
+                  name
+                }}
+              }}        
+        """
+        result = self.graph.execute_graphql(query=query)
+        return result
+
+    def list_terms(self, start: int = 0, count: int = 1000) -> Dict:
+        """
+        list terms
+        :param start:
+        :param count:
+        :return:
+        """
+
+        query: str = f"""
+        query getRootGlossaryTerms {{
+            getRootGlossaryTerms(input: {{start: {start}, count: {count} }}) {{
+                count
+                start
+                total
+                terms {{
+                  ...childGlossaryTerm
+                }}
+              }}
+            }}
+
+            fragment childGlossaryTerm on GlossaryTerm {{
+              urn
+              type
+              name
+              hierarchicalName
+              properties {{
+                name
+              }}
+            }}        
+        """
+        result = self.graph.execute_graphql(query=query)
+        return result
 
     def soft_deleted_dataset(self, dataset_list: List[Dict]) -> Dict:
         """

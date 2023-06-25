@@ -62,7 +62,7 @@ class TestSource(unittest.TestCase):
         from example.source.custom_dataset_profile_source import CustomProfileSource
 
         source = CustomProfileSource(
-            table=f"dc.dwd_active",
+            table=f"public.result_facebook",
             rows=20,
             column_count=8,
             column_info={"data_size": {"max": "10"}},

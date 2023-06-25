@@ -10,7 +10,7 @@ import json
 from hashlib import md5
 from typing import Dict, Iterable, List, Optional
 from py4j.java_gateway import JavaGateway
-from example.api.graphsql_api import DataHubQuery
+from example.api.graphsql_api.query import DataHubQuery
 
 from datahub.configuration.common import AllowDenyPattern, ConfigurationError
 from datahub.emitter.mce_builder import (

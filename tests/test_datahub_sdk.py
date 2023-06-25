@@ -16,6 +16,73 @@ class TestDatahubSdk(unittest.TestCase):
         pass
 
     @unittest.skip("直接跳过测试")
+    def test_list_query(self):
+        """
+        :return: {'listQueries': {'start': 0, 'count': 1000, 'total': 1, 'queries': [{'urn': 'urn:li:query:e161dc32-ca4d-4a9b-bd92-647fc9b463d7', 'type': 'QUERY', 'properties': {'name': 'tt', 'description': 't', 'statement': {'value': 'select * from table', 'language': 'SQL'}}, 'subjects': [{'dataset': {'urn': 'urn:li:dataset:(urn:li:dataPlatform:dwd,dc.dwd_expenditure,PROD)'}}]}]}}
+        """
+        obj = DatahubSdk()
+        data = obj.list_query(
+            platform="dwd",
+            name="dc.dwd_expenditure",
+        )
+        print(data)
+    @unittest.skip("直接跳过测试")
+    def test_batch_set_data_product(self):
+        """
+        :return:
+        """
+        obj = DatahubSdk()
+        obj.batch_set_data_product(
+            dataset_list=[{"platform": "kafka", "name": "chest_game_coin"}], name="wsy"
+        )
+
+    @unittest.skip("直接跳过测试")
+    def test_create_data_product(self):
+        """
+        :return:
+        """
+        obj = DatahubSdk()
+        obj.create_data_product(name="test", desc="test", domain_name="运营")
+
+    @unittest.skip("直接跳过测试")
+    def test_list_domain(self):
+        """
+        :return:
+        """
+        obj = DatahubSdk()
+        data = obj.list_domain()
+        print(data)
+
+    @unittest.skip("直接跳过测试")
+    def test_list_terms(self):
+        """
+        :return:
+        """
+        obj = DatahubSdk()
+        data = obj.list_terms()
+        print(data)
+
+    @unittest.skip("直接跳过测试")
+    def test_create_query(self):
+        """
+        :return: {'createQuery': {'urn': 'urn:li:query:f2fdffe9-9f21-480a-8837-36d6c568858a'}}
+        """
+        obj = DatahubSdk()
+        obj.create_query(
+            platform="dwd",
+            name="dc.dwd_expenditure",
+            query_info={"name": "tt", "description": "t", "sql": "select * from table"},
+        )
+
+    @unittest.skip("直接跳过测试")
+    def test_delete_query(self):
+        """
+        :return:
+        """
+        obj = DatahubSdk()
+        obj.delete_query(query_id="e224511c-aa25-4f6b-8770-170cd43e9c64")
+
+    @unittest.skip("直接跳过测试")
     def test_soft_deleted_dataset(self):
         data = DatahubSdk().soft_deleted_dataset(
             dataset_list=[{"platform": "dwd", "name": "dc.dwd_test"}]
