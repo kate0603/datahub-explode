@@ -2,3 +2,4 @@ kafka-python
 confluent_kafka
 elasticsearch==7.13
 kibana-api
+sqllineage
