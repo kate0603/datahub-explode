@@ -87,6 +87,30 @@ class DatahubSdk(object):
             DatahubClientConfig(server=config["gms_server"], token=config["token"])
         )
 
+    def update_lineage(self, down_urn: str, up_urns: List) -> None:
+        edges: List = [
+            f"""{{
+                      upstreamUrn: "{i}",
+                      downstreamUrn: "{down_urn}"
+                }}
+            """
+            for i in up_urns
+        ]
+        query: str = f"""
+        mutation updateLineage {{
+            updateLineage(
+                input: {{
+                  edgesToAdd: [
+                    {",".join(edges)}
+                  ],
+                  edgesToRemove: []
+                }}
+            )
+        }}
+        """
+        result = self.graph.execute_graphql(query=query)
+        print(result)
+
     def make_data_product_urn(self, urn: str) -> str:
         # todo 等待sdk更新
         if urn.startswith("urn:li:dataProduct:"):
@@ -195,17 +219,18 @@ class DatahubSdk(object):
         result = self.graph.execute_graphql(query=query)
         print(result)
 
-    def batch_set_data_product(
-        self, dataset_list: List[Dict], name: str = "true"
-    ) -> Dict:
+    def batch_set_data_product(self, dataset_list: List, name: str = "product") -> Dict:
         """
-        批量增加deprecation
         :param dataset_list:
         :param name:
         :return:
         """
         resource_urn: List = [
-            f""" "{make_dataset_urn(platform=i['platform'], name=i['name'])}" """
+            (
+                f""" "{make_dataset_urn(platform=i['platform'], name=i['name'])}" """
+                if isinstance(i, dict)
+                else f""" "{i}" """
+            )
             for i in dataset_list
         ]
 
@@ -382,7 +407,8 @@ class DatahubSdk(object):
                         ],  # use this to provide the type of the field in the source system's vernacular
                         description=i["desc"],
                         lastModified=AuditStampClass(
-                            time=now, actor="urn:li:corpuser:ingestion",
+                            time=now,
+                            actor="urn:li:corpuser:ingestion",
                         ),
                     )
                     for i in column_info
@@ -468,7 +494,8 @@ class DatahubSdk(object):
         current_timestamp = AuditStampClass(time=now, actor="urn:li:corpuser:ingestion")
 
         current_editable_schema_metadata = self.graph.get_aspect(
-            entity_urn=dataset_urn, aspect_type=EditableSchemaMetadataClass,
+            entity_urn=dataset_urn,
+            aspect_type=EditableSchemaMetadataClass,
         )
 
         need_write = False
@@ -487,13 +514,15 @@ class DatahubSdk(object):
         else:
             # create a brand new editable dataset properties aspect
             current_editable_schema_metadata = EditableSchemaMetadataClass(
-                editableSchemaFieldInfo=[field_info_to_set], created=current_timestamp,
+                editableSchemaFieldInfo=[field_info_to_set],
+                created=current_timestamp,
             )
             need_write = True
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_editable_schema_metadata,
+                entityUrn=dataset_urn,
+                aspect=current_editable_schema_metadata,
             )
             self.graph.emit(event)
             log.info(f"Documentation added to dataset {dataset_urn}")
@@ -501,7 +530,11 @@ class DatahubSdk(object):
             log.info("Documentation already exists and is identical, omitting write")
 
     def add_documentation_link(
-        self, platform: str, name: str, link_to_add: str, link_description: str,
+        self,
+        platform: str,
+        name: str,
+        link_to_add: str,
+        link_description: str,
     ) -> None:
         """
         增加documentation
@@ -544,7 +577,8 @@ class DatahubSdk(object):
 
         if need_write:
             event = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_institutional_memory,
+                entityUrn=dataset_urn,
+                aspect=current_institutional_memory,
             )
             self.graph.emit(event)
             log.info(f"Link {link_to_add} added to dataset {dataset_urn}")
@@ -555,7 +589,10 @@ class DatahubSdk(object):
             )
 
     def add_documentation(
-        self, platform: str, name: str, documentation_to_add: str,
+        self,
+        platform: str,
+        name: str,
+        documentation_to_add: str,
     ) -> None:
         """
         增加documentation
@@ -587,7 +624,8 @@ class DatahubSdk(object):
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_editable_properties,
+                entityUrn=dataset_urn,
+                aspect=current_editable_properties,
             )
             self.graph.emit(event)
             log.info(f"Documentation added to dataset {dataset_urn}")
@@ -704,17 +742,25 @@ class DatahubSdk(object):
         result = self.graph.execute_graphql(query=query)
         return result
 
-    def add_domain(self, platform: str, name: str, domain: str) -> Dict:
+    def add_domain(
+        self,
+        platform: str = None,
+        name: str = None,
+        domain: str = None,
+        urn: str = None,
+    ) -> Dict:
         """
         增加domain
         :param platform:
         :param name:
         :param domain:
+        :param urn:
         :return:
         """
+        urn = urn or make_dataset_urn(platform=platform, name=name)
         query: str = f"""
         mutation setDomain {{
-            setDomain(domainUrn: "{make_domain_urn(domain=domain)}", entityUrn: "{make_dataset_urn(platform=platform, name=name)}")
+            setDomain(domainUrn: "{make_domain_urn(domain=domain)}", entityUrn: "{urn}")
         }}
         """
         result = self.graph.execute_graphql(query=query)
@@ -724,7 +770,9 @@ class DatahubSdk(object):
         dataset_urn: str = make_dataset_urn(platform=platform, name=name, env=self.env)
 
         result = self.graph.get_aspects_for_entity(
-            entity_urn=dataset_urn, aspects=["domains"], aspect_types=[DomainsClass],
+            entity_urn=dataset_urn,
+            aspects=["domains"],
+            aspect_types=[DomainsClass],
         )
         return result
 
@@ -776,7 +824,13 @@ class DatahubSdk(object):
         result = self.graph.execute_graphql(query=query)
         return result
 
-    def add_owners(self, platform: str, name: str, owner: str) -> None:
+    def add_owners_list(self, owners: list = None, urn: str = None) -> None:
+        for i in owners:
+            self.add_owners(owner=i, urn=urn)
+
+    def add_owners(
+        self, platform: str = None, name: str = None, owner: str = None, urn: str = None
+    ) -> None:
         """
         增加owner
         :param platform:
@@ -786,7 +840,9 @@ class DatahubSdk(object):
         """
         owner_to_add = make_user_urn(owner)
         ownership_type = OwnershipTypeClass.TECHNICAL_OWNER
-        dataset_urn: str = make_dataset_urn(platform=platform, name=name, env=self.env)
+        dataset_urn: str = urn or make_dataset_urn(
+            platform=platform, name=name, env=self.env
+        )
 
         owner_class_to_add = OwnerClass(owner=owner_to_add, type=ownership_type)
         ownership_to_add = OwnershipClass(owners=[owner_class_to_add])
@@ -810,7 +866,8 @@ class DatahubSdk(object):
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_owners,
+                entityUrn=dataset_urn,
+                aspect=current_owners,
             )
             self.graph.emit(event)
             log.info(
@@ -818,6 +875,57 @@ class DatahubSdk(object):
             )
         else:
             log.info(f"Owner {owner_to_add} already exists, omitting write")
+
+    def add_terms_list(self, terms: list, urn: str):
+        for i in terms:
+            self.add_terms(terms=i, urn=urn)
+
+    def add_terms(
+        self, platform: str = None, name: str = None, terms: str = None, urn: str = None
+    ) -> None:
+        """
+        增加terms至实体
+        :param platform:
+        :param name:
+        :param terms:
+        :param urn:
+        :return:
+        """
+        dataset_urn: str = urn or make_dataset_urn(
+            platform=platform, name=name, env=self.env
+        )
+
+        current_terms: Optional[GlossaryTermsClass] = self.graph.get_aspect(
+            entity_urn=dataset_urn, aspect_type=GlossaryTermsClass
+        )
+
+        term_to_add = make_term_urn(terms)
+        term_association_to_add = GlossaryTermAssociationClass(urn=term_to_add)
+        # an audit stamp that basically says we have no idea when these terms were added to this dataset
+        # change the time value to (time.time() * 1000) if you want to specify the current time of running this code as the time
+        unknown_audit_stamp = AuditStampClass(time=0, actor="urn:li:corpuser:ingestion")
+        need_write = False
+        if current_terms:
+            if term_to_add not in [x.urn for x in current_terms.terms]:
+                # terms exist, but this term is not present in the current terms
+                current_terms.terms.append(term_association_to_add)
+                need_write = True
+        else:
+            # create a brand new terms aspect
+            current_terms = GlossaryTermsClass(
+                terms=[term_association_to_add],
+                auditStamp=unknown_audit_stamp,
+            )
+            need_write = True
+
+        if need_write:
+            event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
+                entityUrn=dataset_urn,
+                aspect=current_terms,
+            )
+            self.graph.emit(event)
+        else:
+            log.info(f"Term {term_to_add} already exists, omitting write")
 
     def read_owners(self, platform: str, name: str) -> Dict[str, Optional[Aspect]]:
         """
@@ -970,13 +1078,15 @@ class DatahubSdk(object):
         else:
             # create a brand new editable schema metadata aspect
             current_editable_schema_metadata = EditableSchemaMetadataClass(
-                editableSchemaFieldInfo=[field_info_to_set], created=current_timestamp,
+                editableSchemaFieldInfo=[field_info_to_set],
+                created=current_timestamp,
             )
             need_write = True
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_editable_schema_metadata,
+                entityUrn=dataset_urn,
+                aspect=current_editable_schema_metadata,
             )
             self.graph.emit(event)
             log.info(
@@ -987,46 +1097,6 @@ class DatahubSdk(object):
             log.info(
                 f"Term {term_to_add} already attached to column {column}, omitting write"
             )
-
-    def add_terms(self, platform: str, name: str, terms: str) -> None:
-        """
-        增加terms至实体
-        :param platform:
-        :param name:
-        :param terms:
-        :return:
-        """
-        dataset_urn: str = make_dataset_urn(platform=platform, name=name, env=self.env)
-
-        current_terms: Optional[GlossaryTermsClass] = self.graph.get_aspect(
-            entity_urn=dataset_urn, aspect_type=GlossaryTermsClass
-        )
-
-        term_to_add = make_term_urn(terms)
-        term_association_to_add = GlossaryTermAssociationClass(urn=term_to_add)
-        # an audit stamp that basically says we have no idea when these terms were added to this dataset
-        # change the time value to (time.time() * 1000) if you want to specify the current time of running this code as the time
-        unknown_audit_stamp = AuditStampClass(time=0, actor="urn:li:corpuser:ingestion")
-        need_write = False
-        if current_terms:
-            if term_to_add not in [x.urn for x in current_terms.terms]:
-                # terms exist, but this term is not present in the current terms
-                current_terms.terms.append(term_association_to_add)
-                need_write = True
-        else:
-            # create a brand new terms aspect
-            current_terms = GlossaryTermsClass(
-                terms=[term_association_to_add], auditStamp=unknown_audit_stamp,
-            )
-            need_write = True
-
-        if need_write:
-            event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_terms,
-            )
-            self.graph.emit(event)
-        else:
-            log.info(f"Term {term_to_add} already exists, omitting write")
 
     def read_terms(self, platform: str, name: str) -> Dict[str, Optional[Aspect]]:
         """
@@ -1053,11 +1123,14 @@ class DatahubSdk(object):
         """
         term_urn: str = make_term_urn(terms_name)
         term_properties_aspect = GlossaryTermInfoClass(
-            definition=terms_desc, name=terms_name, termSource="",
+            definition=terms_desc,
+            name=terms_name,
+            termSource="",
         )
 
         event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-            entityUrn=term_urn, aspect=term_properties_aspect,
+            entityUrn=term_urn,
+            aspect=term_properties_aspect,
         )
         self.emitter.emit(event)
 
@@ -1114,7 +1187,8 @@ class DatahubSdk(object):
         tag_to_add = make_tag_urn(tag)
 
         current_editable_schema_metadata = self.graph.get_aspect(
-            entity_urn=dataset_urn, aspect_type=EditableSchemaMetadataClass,
+            entity_urn=dataset_urn,
+            aspect_type=EditableSchemaMetadataClass,
         )
 
         # Some pre-built objects to help all the conditional pathways
@@ -1158,13 +1232,15 @@ class DatahubSdk(object):
                 time=now, actor="urn:li:corpuser:ingestion"
             )
             current_editable_schema_metadata = EditableSchemaMetadataClass(
-                editableSchemaFieldInfo=[field_info_to_set], created=current_timestamp,
+                editableSchemaFieldInfo=[field_info_to_set],
+                created=current_timestamp,
             )
             need_write = True
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_editable_schema_metadata,
+                entityUrn=dataset_urn,
+                aspect=current_editable_schema_metadata,
             )
             self.graph.emit(event)
             log.info(
@@ -1175,18 +1251,26 @@ class DatahubSdk(object):
                 f"Tag {tag_to_add} already attached to column {column}, omitting write"
             )
 
-    def add_tags(self, platform: str, name: str, tag: str) -> None:
+    def add_tags_list(self, tags: List, urn: str):
+        for tag in tags:
+            self.add_tags(tag=tag, urn=urn)
+
+    def add_tags(
+        self, tag: str, urn: str = None, platform: str = None, name: str = None
+    ) -> None:
         """
         增加tag至实体
+        :param urn:
         :param platform:
         :param name:
         :param tag:
         :return:
         """
-        dataset_urn: str = make_dataset_urn(platform=platform, name=name)
+        dataset_urn: str = urn or make_dataset_urn(platform=platform, name=name)
 
         current_tags: Optional[GlobalTagsClass] = self.graph.get_aspect(
-            entity_urn=dataset_urn, aspect_type=GlobalTagsClass,
+            entity_urn=dataset_urn,
+            aspect_type=GlobalTagsClass,
         )
 
         tag_to_add = make_tag_urn(tag)
@@ -1205,7 +1289,8 @@ class DatahubSdk(object):
 
         if need_write:
             event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-                entityUrn=dataset_urn, aspect=current_tags,
+                entityUrn=dataset_urn,
+                aspect=current_tags,
             )
             self.graph.emit(event)
             log.info(f"Tag {tag_to_add} added to dataset {dataset_urn}")
@@ -1235,10 +1320,14 @@ class DatahubSdk(object):
         :return:
         """
         tag_urn = make_tag_urn(tag_name)
-        tag_properties_aspect = TagPropertiesClass(name=tag_name, description=tag_desc,)
+        tag_properties_aspect = TagPropertiesClass(
+            name=tag_name,
+            description=tag_desc,
+        )
 
         event: MetadataChangeProposalWrapper = MetadataChangeProposalWrapper(
-            entityUrn=tag_urn, aspect=tag_properties_aspect,
+            entityUrn=tag_urn,
+            aspect=tag_properties_aspect,
         )
         self.emitter.emit(event)
 

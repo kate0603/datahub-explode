@@ -3,3 +3,4 @@ confluent_kafka
 elasticsearch==7.13
 kibana-api
 sqllineage
+acryl-datahub==0.11.0

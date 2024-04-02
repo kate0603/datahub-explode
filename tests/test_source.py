@@ -14,12 +14,53 @@ from example.source.csv_enricher_metadata import CustomCSVEnricherSource
 from example.source.superset_metadata import CustomSupersetSource
 
 
+class FlowAdToGame(object):
+    """
+    功能未上架
+    """
+
+    orchestrator: str = "test"
+    external_url: str = ""
+    name: str = "ad_to_game"
+    description: str = "相关的工作流"
+    properties: dict = {}
+
+
+class JobAd(object):
+    """
+    功能未上架
+    """
+
+    job_type: str = "test_job"
+    status = "IN_PROGRESS"
+    external_url: str = ""
+
+    name: str = "dgc_job_ad_to_game_cal_wsy"
+    description: str = "[华为云dgc]wsy-广告运营打通-计算。"
+    properties: dict = {"dgc_job_name": "wsy-广告运营打通-计算"}
+    flow: str = FlowAdToGame
+    upstream_lineage: list = [""]
+
+
 class TestSource(unittest.TestCase):
-    """
-    """
+    """ """
 
     def setUp(self) -> None:
         pass
+
+    @unittest.skip("直接跳过测试")
+    def test_job(self):
+        from example.source.source_job import SourceJob
+
+        source = SourceJob(model_obj=FlowAdToGame)
+        RestSink(source).post()
+
+    @unittest.skip("直接跳过测试")
+    def test_flow(self):
+        from example.source.source_flow import SourceFlow
+
+        source = SourceFlow(model_obj=JobAd)
+        RestSink(source).post()
 
     @unittest.skip("直接跳过测试")
     def test_superset_metadata(self):
